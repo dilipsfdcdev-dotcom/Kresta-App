@@ -3,7 +3,8 @@ _transform: true
 
 ###
 ### Consumers / users for Supabase services.
-### The ${...} placeholders are expanded by the kong container's entrypoint.
+### Placeholders like the ones below are substituted by the kong service
+### entrypoint (see docker-compose.yml).
 ###
 consumers:
   - username: DASHBOARD

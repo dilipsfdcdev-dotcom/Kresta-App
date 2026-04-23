@@ -217,7 +217,17 @@ services:
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
       DASHBOARD_USERNAME: ${DASHBOARD_USERNAME:-supabase}
       DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-this_password_is_insecure_and_should_be_updated}
-    entrypoint: bash -c 'eval "echo \"$$(cat ~/temp.yml)\"" > ~/kong.yml && /docker-entrypoint.sh kong docker-start'
+    # Render the two API keys into kong.yml using sed (surgical — no bash eval
+    # that would misinterpret $FOO / ${...} anywhere else in the file, like in
+    # a comment).
+    entrypoint:
+      - bash
+      - -c
+      - |
+        sed -e "s|\$$SUPABASE_ANON_KEY|$$SUPABASE_ANON_KEY|g" \
+            -e "s|\$$SUPABASE_SERVICE_KEY|$$SUPABASE_SERVICE_KEY|g" \
+            /home/kong/temp.yml > /home/kong/kong.yml &&
+        /docker-entrypoint.sh kong docker-start
 
   # --------------------------------------------------------------------------
   # Dev-only email catcher (receives OTP emails on localhost:9000)

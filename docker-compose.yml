@@ -14,14 +14,12 @@ services:
     restart: unless-stopped
     volumes:
       - db_data:/var/lib/postgresql/data
-      # Supabase bundle init files (schema for auth, storage, realtime, etc.).
-      - ./volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:Z
-      - ./volumes/db/webhooks.sql:/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql:Z
-      - ./volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
-      - ./volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
-      - ./volumes/db/logs.sql:/docker-entrypoint-initdb.d/migrations/99-logs.sql:Z
-      # Acrely migrations — applied via `scripts/migrate.sh` once db is healthy.
-      # Mounted read-only so the script can psql -f them from inside the container.
+      # Stack bootstrap SQL + Acrely migrations are all applied via
+      # scripts/migrate.sh once the db container is healthy. Standard Postgres
+      # initdb doesn't recurse into subdirectories, so we don't try to run them
+      # via /docker-entrypoint-initdb.d — we just mount them read-only and let
+      # psql -f pick them up.
+      - ./volumes/db:/db-bootstrap:ro,Z
       - ./supabase/migrations:/acrely-migrations:ro,Z
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]

@@ -1,12 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { env } from "@/lib/utils/env";
+import { assertServerEnv, env } from "@/lib/utils/env";
 
 /**
  * Refreshes the Supabase session cookie on every request and gates the app
  * behind auth. Login + auth-callback + health are public.
  */
 export async function middleware(request: NextRequest) {
+  assertServerEnv();
+
   let response = NextResponse.next({ request: { headers: request.headers } });
 
   type CookieToSet = { name: string; value: string; options?: Record<string, unknown> };

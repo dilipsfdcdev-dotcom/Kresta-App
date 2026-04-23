@@ -105,6 +105,17 @@ if [ -z "$(get SERVICE_ROLE_KEY)" ]; then
   echo "Generated SERVICE_ROLE_KEY"
 fi
 
+# Mirror the generated keys into the Next.js-facing variable names so `npm run
+# dev` on the host works without a second config file. Docker mode passes these
+# via docker-compose.yml and doesn't read them from here — harmless duplicates.
+anon="$(get ANON_KEY)"
+svc="$(get SERVICE_ROLE_KEY)"
+[ -z "$(get NEXT_PUBLIC_SUPABASE_URL)" ]   && set_kv NEXT_PUBLIC_SUPABASE_URL "http://localhost:8000"
+set_kv NEXT_PUBLIC_SUPABASE_ANON_KEY "$anon"
+set_kv SUPABASE_SERVICE_ROLE_KEY     "$svc"
+[ -z "$(get NEXT_PUBLIC_APP_NAME)" ]       && set_kv NEXT_PUBLIC_APP_NAME "Acrely"
+[ -z "$(get NEXT_PUBLIC_COMPANY_NAME)" ]   && set_kv NEXT_PUBLIC_COMPANY_NAME "Kresta Infra & Developers"
+
 echo
 echo "✓ .env initialised."
 echo

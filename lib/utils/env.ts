@@ -34,6 +34,10 @@ export function assertServerEnv() {
     ["NEXT_PUBLIC_SUPABASE_ANON_KEY", env.supabaseAnonKey],
   ].filter(([, v]) => !v).map(([k]) => k);
   if (missing.length) {
-    throw new Error(`Missing required env vars: ${missing.join(", ")}`);
+    throw new Error(
+      `Acrely is missing required env vars: ${missing.join(", ")}. ` +
+      `Run ./scripts/init.sh to populate .env, then restart the dev server. ` +
+      `If you're running in Docker, make sure .env is populated before ./scripts/start.sh.`,
+    );
   }
 }

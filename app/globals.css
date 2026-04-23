@@ -1,0 +1,81 @@
+/* Noto Sans + Noto Sans Telugu for Telugu script support (land owner names, plot nos).
+   @import url must come before @import "tailwindcss" per CSS spec. */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Noto Sans", "Noto Sans Telugu", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(240 10% 3.9%);
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(240 10% 3.9%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(240 10% 3.9%);
+  --color-primary: hsl(142 72% 29%);
+  --color-primary-foreground: hsl(0 0% 98%);
+  --color-secondary: hsl(240 4.8% 95.9%);
+  --color-secondary-foreground: hsl(240 5.9% 10%);
+  --color-muted: hsl(240 4.8% 95.9%);
+  --color-muted-foreground: hsl(240 3.8% 46.1%);
+  --color-accent: hsl(142 72% 95%);
+  --color-accent-foreground: hsl(142 72% 20%);
+  --color-destructive: hsl(0 84.2% 60.2%);
+  --color-destructive-foreground: hsl(0 0% 98%);
+  --color-border: hsl(240 5.9% 90%);
+  --color-input: hsl(240 5.9% 90%);
+  --color-ring: hsl(142 72% 29%);
+
+  --radius: 0.5rem;
+}
+
+/* Dark mode tokens via .dark class toggle */
+@layer base {
+  .dark {
+    --color-background: hsl(240 10% 3.9%);
+    --color-foreground: hsl(0 0% 98%);
+    --color-card: hsl(240 10% 5.9%);
+    --color-card-foreground: hsl(0 0% 98%);
+    --color-popover: hsl(240 10% 5.9%);
+    --color-popover-foreground: hsl(0 0% 98%);
+    --color-primary: hsl(142 72% 45%);
+    --color-primary-foreground: hsl(0 0% 8%);
+    --color-secondary: hsl(240 3.7% 15.9%);
+    --color-secondary-foreground: hsl(0 0% 98%);
+    --color-muted: hsl(240 3.7% 15.9%);
+    --color-muted-foreground: hsl(240 5% 64.9%);
+    --color-accent: hsl(142 72% 15%);
+    --color-accent-foreground: hsl(142 72% 85%);
+    --color-destructive: hsl(0 62.8% 45%);
+    --color-destructive-foreground: hsl(0 0% 98%);
+    --color-border: hsl(240 3.7% 15.9%);
+    --color-input: hsl(240 3.7% 15.9%);
+    --color-ring: hsl(142 72% 45%);
+  }
+
+  * {
+    border-color: var(--color-border);
+  }
+
+  html,
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Min 44x44 tap target on mobile */
+  @media (pointer: coarse) {
+    button, a, [role="button"] {
+      min-height: 44px;
+    }
+  }
+}
+
+/* INR currency tabular alignment */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+.env
+.env.local
+backups
+volumes/db/data
+volumes/storage
+README.md
+Dockerfile
+docker-compose.yml
+scripts
+*.log

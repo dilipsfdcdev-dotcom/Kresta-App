@@ -4,6 +4,13 @@
 # and a small ledger table tracks which files have been applied.
 set -euo pipefail
 
+# Git Bash / MSYS on Windows rewrites arguments that look like absolute Unix
+# paths (e.g. /acrely-migrations/...) to Windows paths before the command
+# executes — breaking paths that are meant to resolve INSIDE the container.
+# Disable that conversion for this script.
+export MSYS_NO_PATHCONV=1
+export MSYS2_ARG_CONV_EXCL="*"
+
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$HERE"
 

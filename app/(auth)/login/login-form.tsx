@@ -59,14 +59,20 @@ export function LoginForm() {
     setLoading(true);
     try {
       const supabase = createSupabaseBrowserClient();
-      const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+      const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
       if (error) throw error;
+      if (!data.session) throw new Error("Signed in, but no session was issued.");
+
       toast.success("Signed in");
-      router.push(nextPath);
-      router.refresh();
+
+      // Full reload (not router.push) so the freshly-set session cookies
+      // definitely reach the middleware on the next request. router.push can
+      // fire before the cookies are flushed, leaving the middleware still
+      // seeing an unauthenticated request and redirecting back to /login.
+      const target = nextPath && nextPath.startsWith("/") && !nextPath.startsWith("//") ? nextPath : "/";
+      window.location.replace(target);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Invalid code");
-    } finally {
       setLoading(false);
     }
   }

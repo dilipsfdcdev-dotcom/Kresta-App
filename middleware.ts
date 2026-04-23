@@ -1,68 +1,50 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-import { assertServerEnv, env } from "@/lib/utils/env";
 
 /**
- * Refreshes the Supabase session cookie on every request and gates the app
- * behind auth. Login + auth-callback + health are public.
+ * Gate the app behind auth. Login + auth-callback + health are public.
+ *
+ * The middleware runs in Next.js's edge runtime, which only sees NEXT_PUBLIC_*
+ * env vars. Inside Docker, the server-side Supabase URL is on an internal
+ * hostname (http://kong:8000) the edge runtime can't reach — so we do NOT
+ * validate the session against the Supabase API here. Instead:
+ *
+ *  - If a Supabase session cookie is present, let the request through.
+ *  - The (app) layout re-validates the session with a full server-side
+ *    Supabase client (Node runtime, full env access) and redirects to /login
+ *    if the cookie is stale.
+ *
+ * This avoids a double network hop AND works on Docker without a proxy trick.
  */
-export async function middleware(request: NextRequest) {
-  assertServerEnv();
-
-  let response = NextResponse.next({ request: { headers: request.headers } });
-
-  type CookieToSet = { name: string; value: string; options?: Record<string, unknown> };
-
-  const supabase = createServerClient(env.supabaseUrl, env.supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
-      setAll(cookiesToSet: CookieToSet[]) {
-        cookiesToSet.forEach(({ name, value }: CookieToSet) => request.cookies.set(name, value));
-        response = NextResponse.next({ request: { headers: request.headers } });
-        cookiesToSet.forEach(({ name, value, options }: CookieToSet) =>
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          response.cookies.set(name, value, options as any),
-        );
-      },
-    },
-  });
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isPublic =
     pathname.startsWith("/login") ||
     pathname.startsWith("/auth/callback") ||
     pathname.startsWith("/api/health");
 
-  if (!user && !isPublic) {
+  const hasSessionCookie = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"));
+
+  if (!hasSessionCookie && !isPublic) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  if (user && pathname === "/login") {
+  if (hasSessionCookie && pathname === "/login") {
     const home = request.nextUrl.clone();
     home.pathname = "/";
     home.searchParams.delete("next");
     return NextResponse.redirect(home);
   }
 
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next (Next internals)
-     * - favicon, static assets, images
-     */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

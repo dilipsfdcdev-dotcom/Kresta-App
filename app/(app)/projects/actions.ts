@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentUserId } from "@/lib/supabase/auth";
 
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -34,11 +35,10 @@ export async function createProject(_prev: ProjectFormState, formData: FormData)
     return { ok: false, message: "Check the fields below.", fieldErrors: parsed.error.flatten().fieldErrors };
   }
 
+  const userId = await getCurrentUserId();
+  if (!userId) return { ok: false, message: "Not signed in" };
+
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, message: "Not signed in" };
 
   const payload = {
     name: parsed.data.name,
@@ -48,8 +48,8 @@ export async function createProject(_prev: ProjectFormState, formData: FormData)
     status: parsed.data.status,
     start_date: parsed.data.start_date,
     description: parsed.data.description || null,
-    created_by: user.id,
-    updated_by: user.id,
+    created_by: userId,
+    updated_by: userId,
   };
 
   const { data: inserted, error } = await supabase
@@ -66,7 +66,7 @@ export async function createProject(_prev: ProjectFormState, formData: FormData)
   }
 
   await supabase.from("activity_log").insert({
-    user_id: user.id,
+    user_id: userId,
     action: "project.created",
     entity_type: "project",
     entity_id: inserted.id,
@@ -86,11 +86,10 @@ export async function updateProject(id: string, _prev: ProjectFormState, formDat
     return { ok: false, message: "Check the fields below.", fieldErrors: parsed.error.flatten().fieldErrors };
   }
 
+  const userId = await getCurrentUserId();
+  if (!userId) return { ok: false, message: "Not signed in" };
+
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, message: "Not signed in" };
 
   const { error } = await supabase
     .from("projects")
@@ -102,14 +101,14 @@ export async function updateProject(id: string, _prev: ProjectFormState, formDat
       status: parsed.data.status,
       start_date: parsed.data.start_date,
       description: parsed.data.description || null,
-      updated_by: user.id,
+      updated_by: userId,
     })
     .eq("id", id);
 
   if (error) return { ok: false, message: error.message };
 
   await supabase.from("activity_log").insert({
-    user_id: user.id,
+    user_id: userId,
     action: "project.updated",
     entity_type: "project",
     entity_id: id,

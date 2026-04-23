@@ -168,7 +168,9 @@ services:
       PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
 
   studio:
-    image: supabase/studio:2024.12.02-sha-34afcb5
+    # Supabase Studio: a database browser. Optional — Acrely works without it.
+    # Pinned to `latest` because Supabase rotates the SHA-suffixed dated tags.
+    image: supabase/studio:latest
     restart: unless-stopped
     depends_on:
       meta:

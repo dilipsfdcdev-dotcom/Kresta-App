@@ -14,9 +14,14 @@
 
 \set pgpass `echo "$POSTGRES_PASSWORD"`
 
+-- psql `:variable` substitution does NOT happen inside dollar-quoted blocks,
+-- so we stash the password in a session config setting that current_setting()
+-- can read from inside the DO block below.
+select set_config('acrely.pgpass', :'pgpass', false);
+
 do $$
 declare
-  v_pass text := :'pgpass';
+  v_pass text := current_setting('acrely.pgpass');
   r record;
   role_name text;
   roles_to_update text[] := array[
